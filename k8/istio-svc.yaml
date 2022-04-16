@@ -1,0 +1,36 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: service-c-destination
+spec:
+  host: service-c
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: service-c-route
+spec:
+  hosts:
+    - service-c
+  http:
+    - route:
+        - destination:
+            host: service-c
+            subset: v2
+          weight: 0
+        - destination:
+            host: service-c
+            subset: v1
+          weight: 100
+      timeout: 8s
+      retries:
+        attempts: 3
+        retryOn: gateway-error,connect-failure,refused-stream
+        perTryTimeout: 2s
